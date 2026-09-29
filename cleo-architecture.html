@@ -1,0 +1,310 @@
+<title>Cleo Agent Architecture</title>
+<style>
+  :root{
+    --bg:#faf8f4;
+    --surface:#ffffff;
+    --surface-2:#f1efe9;
+    --border:#dcd7cc;
+    --text:#1e1b16;
+    --text-muted:#6b6759;
+    --accent:#2c6e8c;
+    --accent-soft:#e4eef2;
+    --gate:#b5502c;
+    --gate-soft:#f6e6dd;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#14120e;
+      --surface:#1d1a15;
+      --surface-2:#25211a;
+      --border:#3c362b;
+      --text:#f1ede3;
+      --text-muted:#a39c8a;
+      --accent:#7ab8d4;
+      --accent-soft:#1e2c31;
+      --gate:#e2926a;
+      --gate-soft:#332019;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#14120e;
+    --surface:#1d1a15;
+    --surface-2:#25211a;
+    --border:#3c362b;
+    --text:#f1ede3;
+    --text-muted:#a39c8a;
+    --accent:#7ab8d4;
+    --accent-soft:#1e2c31;
+    --gate:#e2926a;
+    --gate-soft:#332019;
+  }
+  body{ background:var(--bg); color:var(--text); }
+  *{ box-sizing:border-box; }
+  body{
+    margin:0; padding-block:48px; padding-inline:16px;
+    font-family: "IBM Plex Sans", -apple-system, Segoe UI, sans-serif;
+    line-height:1.5;
+  }
+  .mono{ font-family:"IBM Plex Mono", ui-monospace, Menlo, monospace; }
+  .wrap{ max-width:980px; margin:0 auto; }
+  header.page{ margin-bottom:36px; }
+  header.page .eyebrow{
+    font-family:"IBM Plex Mono", monospace; font-size:12px; letter-spacing:.08em;
+    text-transform:uppercase; color:var(--accent); margin:0 0 10px;
+  }
+  h1{ font-size:clamp(28px,4vw,38px); margin:0 0 10px; text-wrap:balance; letter-spacing:-.01em; }
+  .dek{ color:var(--text-muted); font-size:16px; max-width:70ch; margin:0; }
+
+  figure{ margin:0 0 14px; padding:20px; background:var(--surface); border:1px solid var(--border); border-radius:14px; }
+  figure svg{ width:100%; height:auto; display:block; }
+  figcaption{ margin-top:14px; font-size:14px; color:var(--text-muted); max-width:74ch; }
+  figcaption b{ color:var(--text); font-weight:600; }
+
+  .legend{ display:flex; flex-wrap:wrap; gap:18px; margin:0 0 40px; padding:14px 18px; background:var(--surface-2); border-radius:10px; font-size:13px; color:var(--text-muted); }
+  .legend span{ display:inline-flex; align-items:center; gap:8px; }
+  .swatch{ width:22px; height:3px; border-radius:2px; display:inline-block; }
+  .swatch.neutral{ background:var(--text-muted); }
+  .swatch.data{ background:var(--accent); }
+  .swatch.gate{ background:var(--gate); }
+  .swatch.dashed{ background:repeating-linear-gradient(90deg, var(--gate) 0 6px, transparent 6px 10px); }
+
+  section{ margin-bottom:44px; }
+  h2{ font-size:20px; margin:0 0 16px; letter-spacing:-.01em; }
+  h2 .num{ font-family:"IBM Plex Mono",monospace; color:var(--accent); font-size:14px; margin-right:8px; }
+
+  .skills{ display:grid; gap:10px; }
+  .skill{ display:grid; grid-template-columns:auto 1fr; gap:14px; align-items:start; padding:14px 16px; background:var(--surface); border:1px solid var(--border); border-radius:10px; }
+  .skill .n{ font-family:"IBM Plex Mono",monospace; color:var(--accent); font-size:13px; padding-top:2px; }
+  .skill .name{ font-weight:600; font-family:"IBM Plex Mono",monospace; font-size:14px; }
+  .skill .desc{ color:var(--text-muted); font-size:14px; margin-top:2px; }
+
+  table{ width:100%; border-collapse:collapse; font-size:14px; background:var(--surface); border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+  caption{ caption-side:top; text-align:left; font-size:13px; color:var(--text-muted); margin-bottom:8px; }
+  th,td{ text-align:left; padding:10px 14px; border-bottom:1px solid var(--border); vertical-align:top; }
+  th{ background:var(--surface-2); font-size:12px; text-transform:uppercase; letter-spacing:.04em; color:var(--text-muted); font-weight:600; }
+  tr:last-child td{ border-bottom:none; }
+  td.tool{ font-family:"IBM Plex Mono",monospace; font-size:13px; white-space:nowrap; }
+  .tag{ display:inline-block; font-size:11px; padding:3px 8px; border-radius:20px; font-family:"IBM Plex Mono",monospace; }
+  .tag.open{ background:var(--accent-soft); color:var(--accent); }
+  .tag.gated{ background:var(--gate-soft); color:var(--gate); }
+
+  .cols{ display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+  @media (max-width:640px){ .cols{ grid-template-columns:1fr; } }
+  .persona{ padding:14px 16px; background:var(--surface); border:1px solid var(--border); border-radius:10px; }
+  .persona .who{ font-weight:600; font-size:14px; }
+  .persona .screens{ color:var(--text-muted); font-size:13px; margin-top:4px; }
+
+  ul.guardrails{ margin:0; padding:0; list-style:none; display:grid; gap:10px; }
+  ul.guardrails li{ padding:12px 16px; background:var(--gate-soft); border-left:3px solid var(--gate); border-radius:0 8px 8px 0; font-size:14px; }
+
+  footer{ margin-top:56px; padding-top:20px; border-top:1px solid var(--border); font-size:13px; color:var(--text-muted); }
+  footer a{ color:var(--accent); }
+</style>
+
+<div class="wrap">
+
+  <header class="page">
+    <p class="eyebrow">SJ04 · DataClean Studio</p>
+    <h1>Cleo Agent Architecture</h1>
+    <p class="dek">One orchestrating agent, five internal reasoning skills, ten deterministic tools — and a single approval gate that decides what Cleo is allowed to execute.</p>
+  </header>
+
+  <figure>
+    <svg viewBox="0 0 1200 780" role="img" aria-label="Diagram showing the Presentation Layer, the Cleo orchestrator with its five internal skills, and the deterministic tools layer split into tools Cleo may call freely and two tools locked behind an Approval Gate that only opens once a human approval record exists.">
+      <defs>
+        <marker id="arrN" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto">
+          <polygon points="0,0 8,4 0,8" class="mN"/>
+        </marker>
+        <marker id="arrA" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto">
+          <polygon points="0,0 8,4 0,8" class="mA"/>
+        </marker>
+        <marker id="arrG" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto">
+          <polygon points="0,0 8,4 0,8" class="mG"/>
+        </marker>
+      </defs>
+
+      <style>
+        .mN{ fill:var(--text-muted); } .mA{ fill:var(--accent); } .mG{ fill:var(--gate); }
+        .lN{ stroke:var(--text-muted); fill:none; stroke-width:2; }
+        .lA{ stroke:var(--accent); fill:none; stroke-width:2; }
+        .lG{ stroke:var(--gate); fill:none; stroke-width:2.2; }
+        .lGd{ stroke:var(--gate); fill:none; stroke-width:2.2; stroke-dasharray:6 6; }
+        .box{ fill:var(--surface); stroke:var(--border); stroke-width:1.5; }
+        .box2{ fill:var(--surface-2); stroke:var(--border); stroke-width:1.5; }
+        .gateBox{ fill:var(--gate-soft); stroke:var(--gate); stroke-width:2; }
+        .colHead{ fill:var(--text); font-size:15px; font-weight:600; font-family:"IBM Plex Sans",sans-serif; }
+        .sub{ fill:var(--text-muted); font-size:11px; font-family:"IBM Plex Sans",sans-serif; }
+        .lbl{ fill:var(--text); font-size:13px; font-weight:600; font-family:"IBM Plex Mono",monospace; }
+        .lbl2{ fill:var(--text-muted); font-size:11px; font-family:"IBM Plex Sans",sans-serif; }
+        .edgeN{ fill:var(--text-muted); font-size:11.5px; font-family:"IBM Plex Sans",sans-serif; }
+        .edgeA{ fill:var(--accent); font-size:11.5px; font-family:"IBM Plex Sans",sans-serif; font-weight:600; }
+        .edgeG{ fill:var(--gate); font-size:11.5px; font-family:"IBM Plex Sans",sans-serif; font-weight:600; }
+        .gateLbl{ fill:var(--gate); font-size:14px; font-weight:700; font-family:"IBM Plex Mono",monospace; }
+      </style>
+
+      <!-- Column: Presentation Layer -->
+      <rect x="30" y="30" width="230" height="640" rx="14" class="box2"/>
+      <text x="145" y="58" text-anchor="middle" class="colHead">Presentation Layer</text>
+
+      <rect x="45" y="80" width="200" height="150" rx="10" class="box"/>
+      <text x="145" y="145" text-anchor="middle" class="lbl">Upload / Paste Data</text>
+      <text x="145" y="165" text-anchor="middle" class="sub">Maya · Ethan</text>
+
+      <rect x="45" y="250" width="200" height="180" rx="10" class="box"/>
+      <text x="145" y="305" text-anchor="middle" class="lbl">Review &amp; Approve</text>
+      <text x="145" y="325" text-anchor="middle" class="sub">plan · evidence · confidence</text>
+      <text x="145" y="345" text-anchor="middle" class="sub">approve / reject / send back</text>
+
+      <rect x="45" y="450" width="200" height="200" rx="10" class="box"/>
+      <text x="145" y="510" text-anchor="middle" class="lbl">Audit Trail &amp; Export</text>
+      <text x="145" y="530" text-anchor="middle" class="sub">Priya · Daniel · Maya</text>
+
+      <!-- Column: Cleo -->
+      <rect x="320" y="30" width="300" height="640" rx="14" class="box2"/>
+      <text x="470" y="58" text-anchor="middle" class="colHead">Cleo — Orchestrator (LLM)</text>
+      <text x="470" y="75" text-anchor="middle" class="sub">single agent · no peer swarm</text>
+
+      <rect x="340" y="92" width="260" height="88" rx="9" class="box"/>
+      <text x="470" y="130" text-anchor="middle" class="lbl">Profiling Interpreter</text>
+      <line x1="470" y1="180" x2="470" y2="194" class="lN" marker-end="url(#arrN)"/>
+
+      <rect x="340" y="194" width="260" height="88" rx="9" class="box"/>
+      <text x="470" y="232" text-anchor="middle" class="lbl">Recommendation Ranker</text>
+      <line x1="470" y1="282" x2="470" y2="296" class="lN" marker-end="url(#arrN)"/>
+
+      <rect x="340" y="296" width="260" height="88" rx="9" class="box"/>
+      <text x="470" y="334" text-anchor="middle" class="lbl">Anomaly Explainer</text>
+      <line x1="470" y1="384" x2="470" y2="398" class="lN" marker-end="url(#arrN)"/>
+
+      <rect x="340" y="398" width="260" height="88" rx="9" class="box"/>
+      <text x="470" y="436" text-anchor="middle" class="lbl">Confidence Gatekeeper</text>
+      <line x1="470" y1="486" x2="470" y2="500" class="lN" marker-end="url(#arrN)"/>
+
+      <rect x="340" y="500" width="260" height="88" rx="9" class="box"/>
+      <text x="470" y="538" text-anchor="middle" class="lbl">Workflow Drafter</text>
+
+      <!-- Column: Tools -->
+      <rect x="680" y="30" width="490" height="640" rx="14" class="box2"/>
+      <text x="925" y="58" text-anchor="middle" class="colHead">Deterministic Tools</text>
+
+      <rect x="700" y="80" width="450" height="200" rx="10" class="box"/>
+      <text x="925" y="104" text-anchor="middle" class="sub">OPEN — CLEO CALLS FREELY</text>
+      <text x="722" y="132" class="lbl2 mono">Parser</text>
+      <text x="722" y="156" class="lbl2 mono">Profiler</text>
+      <text x="722" y="180" class="lbl2 mono">Schema Validator</text>
+      <text x="722" y="204" class="lbl2 mono">Business Rule Validator</text>
+      <text x="945" y="132" class="lbl2 mono">Diff / Preview Gen</text>
+      <text x="945" y="156" class="lbl2 mono">Audit Logger</text>
+      <text x="945" y="180" class="lbl2 mono">Export</text>
+      <text x="945" y="204" class="lbl2 mono">Job / Progress</text>
+
+      <rect x="845" y="320" width="170" height="92" rx="12" class="gateBox"/>
+      <text x="930" y="358" text-anchor="middle" class="gateLbl">APPROVAL GATE</text>
+      <text x="930" y="376" text-anchor="middle" class="sub">valid approval record required</text>
+      <line x1="890" y1="412" x2="815" y2="458" class="lG" marker-end="url(#arrG)"/>
+      <text x="822" y="440" class="edgeG">unlocked</text>
+      <line x1="985" y1="412" x2="1045" y2="458" class="lG" marker-end="url(#arrG)"/>
+      <text x="965" y="440" class="edgeG">unlocked · human-reviewed</text>
+
+      <rect x="700" y="460" width="210" height="90" rx="10" class="box"/>
+      <text x="805" y="500" text-anchor="middle" class="lbl">Transformation</text>
+      <text x="805" y="518" text-anchor="middle" class="lbl">Rules Engine</text>
+
+      <rect x="940" y="460" width="210" height="90" rx="10" class="box"/>
+      <text x="1045" y="500" text-anchor="middle" class="lbl">Workflow Registry</text>
+      <text x="1045" y="518" text-anchor="middle" class="sub">human-reviewed only</text>
+
+      <!-- Cross-column edges -->
+      <!-- 1: Upload -> Profiling Interpreter -->
+      <path d="M 245 150 L 340 130" class="lN" marker-end="url(#arrN)"/>
+      <text x="255" y="122" class="edgeN">raw CSV / JSON</text>
+
+      <!-- 2: Cleo <-> Open Tools -->
+      <path d="M 600 230 L 700 175" class="lA" marker-start="url(#arrA)" marker-end="url(#arrA)"/>
+      <text x="605" y="192" class="edgeA">call ↔ result</text>
+
+      <!-- 3: Confidence Gatekeeper -> Review & Approve -->
+      <path d="M 340 440 L 245 340" class="lN" marker-end="url(#arrN)"/>
+      <text x="248" y="410" class="edgeN">ranked plan + evidence</text>
+      <text x="248" y="424" class="edgeN">+ confidence</text>
+
+      <!-- 4: Cleo -> Gate (dashed request) -->
+      <path d="M 600 544 L 845 372" class="lGd" marker-end="url(#arrG)"/>
+      <text x="618" y="470" class="edgeG">request: execute /</text>
+      <text x="618" y="484" class="edgeG">save workflow</text>
+
+      <!-- 5: Review&Approve -> Gate, routed under via bottom lane -->
+      <path d="M 145 430 L 145 700 L 930 700 L 930 412" class="lG" marker-end="url(#arrG)"/>
+      <text x="480" y="694" text-anchor="middle" class="edgeG">approval record</text>
+
+      <!-- 6: Open tools (Audit Logger) -> Audit &amp; Export, routed via bottom lane -->
+      <path d="M 950 280 L 950 738 L 145 738 L 145 650" class="lA" marker-end="url(#arrA)"/>
+      <text x="480" y="732" text-anchor="middle" class="edgeA">audit trail + export</text>
+    </svg>
+
+    <figcaption><b>Read it as one mechanism:</b> Cleo can call the eight tools in the top-right cluster on its own judgment — parsing, profiling, validating, diffing, logging, exporting, checking job status. It can never call the Transformation Rules Engine or write to the Workflow Registry directly; those two requests stop at the Approval Gate (dashed line) and only proceed once a human's approval action — captured on the Review &amp; Approve screen — produces a valid approval record (solid amber path, routed under the diagram). The gate is a property of the tool wrapper, not of Cleo's judgment.</figcaption>
+  </figure>
+
+  <div class="legend">
+    <span><i class="swatch neutral"></i> internal reasoning / data flow</span>
+    <span><i class="swatch data"></i> tool calls &amp; reporting</span>
+    <span><i class="swatch gate"></i> approval-gated path</span>
+    <span><i class="swatch dashed"></i> blocked until approval record exists</span>
+  </div>
+
+  <section>
+    <h2><span class="num">01</span>Cleo's five reasoning skills</h2>
+    <div class="skills">
+      <div class="skill"><div class="n">1</div><div><div class="name">Profiling Interpreter</div><div class="desc">Reads the deterministic profiler's output (types, blanks, duplicates, anomalies) and turns it into a candidate issue list.</div></div></div>
+      <div class="skill"><div class="n">2</div><div><div class="name">Recommendation Ranker</div><div class="desc">Scores and ranks candidate cleanup actions using profiling and validation signals.</div></div></div>
+      <div class="skill"><div class="n">3</div><div><div class="name">Anomaly Explainer</div><div class="desc">Converts validator findings into plain-language explanations, required to cite exact row / cell / rule IDs rather than free-form claims.</div></div></div>
+      <div class="skill"><div class="n">4</div><div><div class="name">Confidence Gatekeeper</div><div class="desc">Scores each recommendation's confidence; anything below threshold is force-routed to manual review instead of offered as auto-approvable.</div></div></div>
+      <div class="skill"><div class="n">5</div><div><div class="name">Workflow Drafter</div><div class="desc">After an approved run, proposes a reusable workflow definition — as a draft only; never writes to the registry directly.</div></div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">02</span>Tool access</h2>
+    <table>
+      <caption>Ten deterministic tools Cleo may call — eight open, two gated behind a human approval record.</caption>
+      <thead><tr><th>Tool</th><th>Access</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td class="tool">Parser</td><td><span class="tag open">open</span></td><td>Papa Parse / native JSON parsing of raw input.</td></tr>
+        <tr><td class="tool">Profiler</td><td><span class="tag open">open</span></td><td>Detects structure, types, blanks, duplicates, outliers.</td></tr>
+        <tr><td class="tool">Schema Validator</td><td><span class="tag open">open</span></td><td>Zod-based schema checks.</td></tr>
+        <tr><td class="tool">Business Rule Validator</td><td><span class="tag open">open</span></td><td>Applies domain-specific validation rules.</td></tr>
+        <tr><td class="tool">Diff / Preview Gen</td><td><span class="tag open">open</span></td><td>Builds before/after previews and changed-cell highlights.</td></tr>
+        <tr><td class="tool">Audit Logger</td><td><span class="tag open">open</span></td><td>Writes the recommend → approve → execute → outcome trail.</td></tr>
+        <tr><td class="tool">Export</td><td><span class="tag open">open</span></td><td>Generates CSV / JSON output.</td></tr>
+        <tr><td class="tool">Job / Progress</td><td><span class="tag open">open</span></td><td>Reports BullMQ async job status.</td></tr>
+        <tr><td class="tool">Transformation Rules Engine</td><td><span class="tag gated">gated</span></td><td>Deterministic execution of approved cleanup operations.</td></tr>
+        <tr><td class="tool">Workflow Registry</td><td><span class="tag gated">gated</span></td><td>CRUD on saved workflows — accepts only human-reviewed writes.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2><span class="num">03</span>UI surfaces by persona</h2>
+    <div class="cols">
+      <div class="persona"><div class="who">Maya Chen · Business Data Operator</div><div class="screens">Upload/paste, recommendation review, simple approve, export.</div></div>
+      <div class="persona"><div class="who">Ethan Morales · Developer Validator</div><div class="screens">Evidence inspection, before/after diff grid, approve/reject risky transforms, workflow library.</div></div>
+      <div class="persona"><div class="who">Priya Nandakumar · Admin &amp; Governance</div><div class="screens">Governance console — approval-checkpoint config, role management, audit review.</div></div>
+      <div class="persona"><div class="who">Daniel Brooks · Operations Manager</div><div class="screens">Condensed summary dashboard — audit-backed outcomes, no technical detail.</div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">04</span>Guardrails</h2>
+    <ul class="guardrails">
+      <li>Cleo holds no direct write path to the Rules Engine or Workflow Registry — every mutating call routes through a wrapper that checks for a valid approval record first.</li>
+      <li>Every Cleo-generated explanation must carry structured evidence references (row / cell / rule IDs), validated against actual validator output before display.</li>
+      <li>Tool permissions are scoped per call — read/report tools are open, the two mutating tools are gated — not one broad credential for everything.</li>
+      <li>Confidence thresholds and the approval-checkpoint policy are admin-configurable (Priya's persona), not hardcoded.</li>
+    </ul>
+  </section>
+
+  <footer>
+    Source: Rezoomex playbook SJ04 (DataClean Studio) — architectural notes, personas, and user stories. UI build note: prototype the Review &amp; Approve and diff screens quickly in a tool like Bolt or Lovable, then hand-build the production frontend in React + TypeScript + Tailwind + TanStack Table against the existing Express / Postgres / Redis stack.
+  </footer>
+
+</div>

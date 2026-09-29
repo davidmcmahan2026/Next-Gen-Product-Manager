@@ -1,0 +1,126 @@
+{
+  "_comment": "One entry per Tool registered on Cleo's agent in Relevance AI. Field names here (title, description, method, url, headers, params) match Relevance AI's HTTP/API Tool step as of this design — check the current Relevance AI docs when you actually create these, since exact field names shift between UI versions. What matters structurally: each tool's `description` is the ONLY thing the LLM sees to decide when to call it, so it must say what the tool does and when to use it, not just its name. `{{secrets.BOLT_TOOL_SECRET}}` and `{{secrets.BOLT_BACKEND_URL}}` are Relevance AI's Custom API Key templating (Integrations & API Keys -> Custom API Keys in the Relevance AI UI) — store both there once and every tool below references them, so nothing is hardcoded per tool.",
+
+  "tools": [
+    {
+      "name": "get_profile",
+      "gated": false,
+      "title": "Get dataset profile",
+      "description": "Returns a deterministic column-by-column profile of the dataset: inferred type, null percentage, unique percentage, and a formatting-issue count per column. Call this first, before proposing anything, to see what the dataset actually contains.",
+      "method": "POST",
+      "url": "{{secrets.BOLT_BACKEND_URL}}/api/tools/get_profile",
+      "headers": { "Content-Type": "application/json", "x-cleo-tool-key": "{{secrets.BOLT_TOOL_SECRET}}" },
+      "params": {
+        "type": "object",
+        "properties": { "datasetId": { "type": "string", "description": "The dataset to profile." } },
+        "required": ["datasetId"]
+      }
+    },
+    {
+      "name": "run_validator",
+      "gated": false,
+      "title": "Run deterministic validation rules",
+      "description": "Runs the fixed set of deterministic cleaning rules (state code normalization, email format cleanup, phone E.164 normalization, categorical canonicalization) against a dataset and returns every violation found, each with the rule name, affected column, row count, and a small before/after sample. This is your evidence — cite it, don't restate it from memory.",
+      "method": "POST",
+      "url": "{{secrets.BOLT_BACKEND_URL}}/api/tools/run_validator",
+      "headers": { "Content-Type": "application/json", "x-cleo-tool-key": "{{secrets.BOLT_TOOL_SECRET}}" },
+      "params": {
+        "type": "object",
+        "properties": {
+          "datasetId": { "type": "string", "description": "The dataset to validate." },
+          "column": { "type": "string", "description": "Optional — limit the scan to one column." }
+        },
+        "required": ["datasetId"]
+      }
+    },
+    {
+      "name": "get_diff_preview",
+      "gated": false,
+      "title": "Preview a rule's before/after diff",
+      "description": "Re-runs a single named rule against one column and returns a fresh before/after sample, without changing any data. Use this to confirm or refresh evidence for a specific recommendation before writing your explanation, especially if the dataset may have changed since run_validator last ran.",
+      "method": "POST",
+      "url": "{{secrets.BOLT_BACKEND_URL}}/api/tools/get_diff_preview",
+      "headers": { "Content-Type": "application/json", "x-cleo-tool-key": "{{secrets.BOLT_TOOL_SECRET}}" },
+      "params": {
+        "type": "object",
+        "properties": {
+          "datasetId": { "type": "string" },
+          "ruleId": { "type": "string", "description": "e.g. state_code_normalization_v3" },
+          "column": { "type": "string" }
+        },
+        "required": ["datasetId", "ruleId", "column"]
+      }
+    },
+    {
+      "name": "write_audit_log",
+      "gated": false,
+      "title": "Write an audit log entry",
+      "description": "Appends an entry to the immutable audit trail — call this for your own reasoning milestones (e.g. after profiling, after proposing a recommendation) so there is a record of what you did and when, separate from the approval/execution entries Bolt writes on its own.",
+      "method": "POST",
+      "url": "{{secrets.BOLT_BACKEND_URL}}/api/tools/write_audit_log",
+      "headers": { "Content-Type": "application/json", "x-cleo-tool-key": "{{secrets.BOLT_TOOL_SECRET}}" },
+      "params": {
+        "type": "object",
+        "properties": {
+          "actor": { "type": "string", "description": "Always \"Cleo\" for your own entries." },
+          "action": { "type": "string" },
+          "detail": { "type": "string" },
+          "type": { "type": "string", "enum": ["recommendation", "policy"] }
+        },
+        "required": ["actor", "action", "detail", "type"]
+      }
+    },
+    {
+      "name": "check_job_status",
+      "gated": false,
+      "title": "Check a job's status",
+      "description": "Returns the current status (queued/running/awaiting_approval/completed/failed) and progress percentage of a profiling/cleaning job. Use this if a run needs to check whether earlier work on the same dataset has finished.",
+      "method": "POST",
+      "url": "{{secrets.BOLT_BACKEND_URL}}/api/tools/check_job_status",
+      "headers": { "Content-Type": "application/json", "x-cleo-tool-key": "{{secrets.BOLT_TOOL_SECRET}}" },
+      "params": {
+        "type": "object",
+        "properties": { "jobId": { "type": "string" } },
+        "required": ["jobId"]
+      }
+    },
+    {
+      "name": "execute_rules_engine",
+      "gated": true,
+      "title": "Execute a cleaning rule (GATED)",
+      "description": "Applies a specific rule to a column, permanently modifying the dataset. This ONLY succeeds if a human has already approved the exact recommendationId in the Bolt UI — otherwise it returns { error: \"denied\" } and nothing changes. Only call this after a recommendation has been presented and you have reason to believe it was approved (e.g. the workflow explicitly tells you it was); never call it speculatively or to 'try' whether something is approved.",
+      "method": "POST",
+      "url": "{{secrets.BOLT_BACKEND_URL}}/api/tools/execute_rules_engine",
+      "headers": { "Content-Type": "application/json", "x-cleo-tool-key": "{{secrets.BOLT_TOOL_SECRET}}" },
+      "params": {
+        "type": "object",
+        "properties": {
+          "datasetId": { "type": "string" },
+          "ruleId": { "type": "string" },
+          "column": { "type": "string" },
+          "recommendationId": { "type": "string", "description": "Must match the id a human approved in the UI." }
+        },
+        "required": ["datasetId", "ruleId", "column", "recommendationId"]
+      }
+    },
+    {
+      "name": "save_workflow",
+      "gated": true,
+      "title": "Save a reusable workflow (GATED)",
+      "description": "Registers a named, reusable combination of rules in the Workflow Registry for future runs. Like execute_rules_engine, this ONLY succeeds if the associated recommendationId has already been approved by a human — otherwise it returns { error: \"denied\" }.",
+      "method": "POST",
+      "url": "{{secrets.BOLT_BACKEND_URL}}/api/tools/save_workflow",
+      "headers": { "Content-Type": "application/json", "x-cleo-tool-key": "{{secrets.BOLT_TOOL_SECRET}}" },
+      "params": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "ruleIds": { "type": "array", "items": { "type": "string" } },
+          "recommendationId": { "type": "string" }
+        },
+        "required": ["name", "description", "ruleIds", "recommendationId"]
+      }
+    }
+  ]
+}

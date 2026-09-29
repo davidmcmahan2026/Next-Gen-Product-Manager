@@ -1,0 +1,287 @@
+<title>Bolt + Relevance AI Split</title>
+<style>
+  :root{
+    --bg:#faf8f4;
+    --surface:#ffffff;
+    --surface-2:#f1efe9;
+    --border:#dcd7cc;
+    --text:#1e1b16;
+    --text-muted:#6b6759;
+    --accent:#2c6e8c;
+    --accent-soft:#e4eef2;
+    --gate:#b5502c;
+    --gate-soft:#f6e6dd;
+    --rel:#5b6b8c;
+    --rel-soft:#eaedf3;
+    --hidden:#a39c8a;
+    --hidden-soft:#eeece5;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#14120e; --surface:#1d1a15; --surface-2:#25211a; --border:#3c362b;
+      --text:#f1ede3; --text-muted:#a39c8a; --accent:#7ab8d4; --accent-soft:#1e2c31;
+      --gate:#e2926a; --gate-soft:#332019; --rel:#a7b3d1; --rel-soft:#232635;
+      --hidden:#7d7768; --hidden-soft:#221f19;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#14120e; --surface:#1d1a15; --surface-2:#25211a; --border:#3c362b;
+    --text:#f1ede3; --text-muted:#a39c8a; --accent:#7ab8d4; --accent-soft:#1e2c31;
+    --gate:#e2926a; --gate-soft:#332019; --rel:#a7b3d1; --rel-soft:#232635;
+    --hidden:#7d7768; --hidden-soft:#221f19;
+  }
+  body{ background:var(--bg); color:var(--text); }
+  *{ box-sizing:border-box; }
+  body{ margin:0; padding-block:48px; padding-inline:16px; font-family:"IBM Plex Sans", -apple-system, Segoe UI, sans-serif; line-height:1.5; }
+  .wrap{ max-width:1100px; margin:0 auto; }
+  header.page{ margin-bottom:28px; }
+  header.page .eyebrow{ font-family:"IBM Plex Mono", monospace; font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); margin:0 0 10px; }
+  h1{ font-size:clamp(26px,4vw,34px); margin:0 0 10px; text-wrap:balance; letter-spacing:-.01em; }
+  .dek{ color:var(--text-muted); font-size:16px; max-width:74ch; margin:0; }
+
+  figure{ margin:0 0 14px; padding:20px; background:var(--surface); border:1px solid var(--border); border-radius:14px; }
+  figure svg{ width:100%; height:auto; display:block; }
+  figcaption{ margin-top:14px; font-size:14px; color:var(--text-muted); max-width:78ch; }
+  figcaption b{ color:var(--text); font-weight:600; }
+
+  .legend{ display:flex; flex-wrap:wrap; gap:16px; margin:18px 0 32px; padding:14px 18px; background:var(--surface-2); border-radius:10px; font-size:12.5px; color:var(--text-muted); }
+  .legend span{ display:inline-flex; align-items:center; gap:8px; }
+  .swatch{ width:22px; height:3px; border-radius:2px; display:inline-block; }
+  .swatch.neutral{ background:var(--text-muted); }
+  .swatch.data{ background:var(--accent); }
+  .swatch.gate{ background:var(--gate); }
+  .swatch.hidden{ background:repeating-linear-gradient(90deg, var(--hidden) 0 5px, transparent 5px 9px); }
+
+  section{ margin-bottom:30px; }
+  h2{ font-size:18px; margin:0 0 14px; letter-spacing:-.01em; }
+
+  .split{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media (max-width:640px){ .split{ grid-template-columns:1fr; } }
+  .side{ padding:16px 18px; border-radius:12px; border:1px solid var(--border); }
+  .side.bolt{ background:var(--surface); }
+  .side.rel{ background:var(--rel-soft); border-color:var(--rel); }
+  .side h3{ font-size:12.5px; text-transform:uppercase; letter-spacing:.04em; margin:0 0 10px; color:var(--text-muted); }
+  .side.rel h3{ color:var(--rel); }
+  .side ul{ margin:0 0 12px; padding-left:18px; font-size:13.5px; }
+  .side ul:last-child{ margin-bottom:0; }
+  .side li{ margin-bottom:6px; }
+  .side .grp{ font-family:"IBM Plex Mono",monospace; font-size:11px; text-transform:uppercase; letter-spacing:.03em; color:var(--text-muted); margin:0 0 6px; }
+  .tag{ display:inline-block; font-size:10px; padding:2px 7px; border-radius:20px; font-family:"IBM Plex Mono",monospace; margin-left:6px; vertical-align:1px; }
+  .tag.open{ background:var(--accent-soft); color:var(--accent); }
+  .tag.gated{ background:var(--gate-soft); color:var(--gate); }
+  .tag.hidden{ background:var(--hidden-soft); color:var(--hidden); }
+
+  footer{ margin-top:10px; padding-top:18px; border-top:1px solid var(--border); font-size:13px; color:var(--text-muted); }
+</style>
+
+<div class="wrap">
+
+  <header class="page">
+    <p class="eyebrow">SJ04 · DataClean Studio — 2-day prototype</p>
+    <h1>Bolt + Relevance AI Split</h1>
+    <p class="dek">Nine tools, three ways to hold them: five Cleo calls on its own judgment, two it can request but Bolt's gate decides, and two it never sees at all. The diagram below shows where each one lives and who's allowed to reach it.</p>
+  </header>
+
+  <figure>
+    <svg viewBox="0 0 1300 900" role="img" aria-label="Diagram showing Bolt's frontend and backend on the left and Relevance AI's hosted Cleo agent on the right. Inside Bolt's backend, Parser and Export are shown as hidden, mechanical tools never exposed to Cleo. Five tools — Profiler, Validator, Diff Preview Generator, Audit Logger, and Job Progress — are shown as open tools Cleo calls directly across the boundary. Two tools, Rules Engine and Workflow Registry, are shown as gated: Cleo may request them across the boundary but Bolt's Approval Gate decides whether they actually run.">
+      <defs>
+        <marker id="brN" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><polygon points="0,0 8,4 0,8" class="mN"/></marker>
+        <marker id="brA" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><polygon points="0,0 8,4 0,8" class="mA"/></marker>
+        <marker id="brG" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><polygon points="0,0 8,4 0,8" class="mG"/></marker>
+        <marker id="brR" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><polygon points="0,0 8,4 0,8" class="mR"/></marker>
+      </defs>
+      <style>
+        .mN{ fill:var(--text-muted); } .mA{ fill:var(--accent); } .mG{ fill:var(--gate); } .mR{ fill:var(--rel); }
+        .lN{ stroke:var(--text-muted); fill:none; stroke-width:2; }
+        .lA{ stroke:var(--accent); fill:none; stroke-width:2.2; }
+        .lG{ stroke:var(--gate); fill:none; stroke-width:2.2; }
+        .lGd{ stroke:var(--gate); fill:none; stroke-width:2.2; stroke-dasharray:6 6; }
+        .lR{ stroke:var(--rel); fill:none; stroke-width:2; }
+        .boundary{ stroke:var(--border); stroke-width:2; stroke-dasharray:5 7; }
+        .box{ fill:var(--surface); stroke:var(--border); stroke-width:1.5; }
+        .box2{ fill:var(--surface-2); stroke:var(--border); stroke-width:1.5; }
+        .relBox{ fill:var(--rel-soft); stroke:var(--rel); stroke-width:1.5; }
+        .gateBox{ fill:var(--gate-soft); stroke:var(--gate); stroke-width:2; }
+        .openTool{ fill:var(--accent-soft); stroke:var(--accent); stroke-width:1.5; }
+        .gatedTool{ fill:var(--gate-soft); stroke:var(--gate); stroke-width:1.5; }
+        .hiddenTool{ fill:var(--hidden-soft); stroke:var(--hidden); stroke-width:1.5; stroke-dasharray:4 4; }
+        .regionLbl{ fill:var(--text-muted); font-size:12px; font-weight:600; letter-spacing:.06em; font-family:"IBM Plex Mono",monospace; }
+        .colHead{ fill:var(--text); font-size:14px; font-weight:600; font-family:"IBM Plex Sans",sans-serif; }
+        .grpLbl{ fill:var(--text-muted); font-size:10.5px; font-weight:600; letter-spacing:.05em; font-family:"IBM Plex Mono",monospace; }
+        .sub{ fill:var(--text-muted); font-size:11px; font-family:"IBM Plex Sans",sans-serif; }
+        .lbl{ fill:var(--text); font-size:13px; font-weight:600; font-family:"IBM Plex Mono",monospace; }
+        .lblSm{ fill:var(--text); font-size:12px; font-weight:600; font-family:"IBM Plex Mono",monospace; }
+        .lblHidden{ fill:var(--hidden); font-size:12px; font-weight:600; font-family:"IBM Plex Mono",monospace; }
+        .edgeN{ fill:var(--text-muted); font-size:11px; font-family:"IBM Plex Sans",sans-serif; }
+        .edgeA{ fill:var(--accent); font-size:11px; font-weight:600; font-family:"IBM Plex Sans",sans-serif; }
+        .edgeG{ fill:var(--gate); font-size:11px; font-weight:600; font-family:"IBM Plex Sans",sans-serif; }
+        .edgeR{ fill:var(--rel); font-size:11.5px; font-weight:600; font-family:"IBM Plex Sans",sans-serif; }
+        .gateLbl{ fill:var(--gate); font-size:13.5px; font-weight:700; font-family:"IBM Plex Mono",monospace; }
+      </style>
+
+      <text x="355" y="45" text-anchor="middle" class="regionLbl">BOLT — YOUR APP (FRONTEND + BACKEND + DB)</text>
+      <text x="990" y="45" text-anchor="middle" class="regionLbl">RELEVANCE AI — HOSTED AGENT</text>
+      <line x1="712" y1="65" x2="712" y2="815" class="boundary"/>
+
+      <!-- Frontend -->
+      <rect x="60" y="85" width="230" height="720" rx="14" class="box2"/>
+      <text x="175" y="112" text-anchor="middle" class="colHead">Bolt Frontend (React)</text>
+
+      <rect x="75" y="120" width="200" height="110" rx="10" class="box"/>
+      <text x="175" y="178" text-anchor="middle" class="lbl">Upload / Paste Data</text>
+      <text x="175" y="196" text-anchor="middle" class="sub">Maya · Ethan</text>
+
+      <rect x="75" y="260" width="200" height="230" rx="10" class="box"/>
+      <text x="175" y="345" text-anchor="middle" class="lbl">Review &amp; Approve</text>
+      <text x="175" y="363" text-anchor="middle" class="sub">diff grid · confidence</text>
+      <text x="175" y="379" text-anchor="middle" class="sub">approve / reject</text>
+
+      <rect x="75" y="520" width="200" height="260" rx="10" class="box"/>
+      <text x="175" y="645" text-anchor="middle" class="lbl">Audit &amp; Export</text>
+      <text x="175" y="663" text-anchor="middle" class="sub">Priya · Daniel</text>
+
+      <!-- Backend -->
+      <rect x="330" y="85" width="360" height="720" rx="14" class="box2"/>
+      <text x="510" y="112" text-anchor="middle" class="colHead">Bolt Backend (Node / Express)</text>
+
+      <rect x="350" y="122" width="320" height="52" rx="9" class="hiddenTool"/>
+      <text x="510" y="153" text-anchor="middle" class="lblHidden">Parser</text>
+      <text x="640" y="153" text-anchor="end" class="sub">not exposed to Cleo</text>
+
+      <text x="350" y="196" class="grpLbl">CLEO-DIRECTED — OPEN TOOLS</text>
+      <rect x="350" y="205" width="320" height="38" rx="8" class="openTool"/>
+      <text x="365" y="229" class="lblSm">Profiler</text>
+      <rect x="350" y="249" width="320" height="38" rx="8" class="openTool"/>
+      <text x="365" y="273" class="lblSm">Validator</text>
+      <rect x="350" y="293" width="320" height="38" rx="8" class="openTool"/>
+      <text x="365" y="317" class="lblSm">Diff / Preview Generator</text>
+      <rect x="350" y="337" width="320" height="38" rx="8" class="openTool"/>
+      <text x="365" y="361" class="lblSm">Audit Logger</text>
+      <rect x="350" y="381" width="320" height="38" rx="8" class="openTool"/>
+      <text x="365" y="405" class="lblSm">Job / Progress</text>
+
+      <rect x="350" y="440" width="320" height="66" rx="12" class="gateBox"/>
+      <text x="510" y="470" text-anchor="middle" class="gateLbl">APPROVAL GATE</text>
+      <text x="510" y="487" text-anchor="middle" class="sub">checks DB for approval record</text>
+
+      <line x1="470" y1="506" x2="450" y2="532" class="lG" marker-end="url(#brG)"/>
+      <line x1="560" y1="506" x2="580" y2="532" class="lG" marker-end="url(#brG)"/>
+
+      <rect x="350" y="534" width="155" height="48" rx="8" class="gatedTool"/>
+      <text x="427" y="563" text-anchor="middle" class="lblSm">Rules Engine</text>
+      <rect x="515" y="534" width="155" height="48" rx="8" class="gatedTool"/>
+      <text x="592" y="563" text-anchor="middle" class="lblSm">Workflow Registry</text>
+      <text x="510" y="600" text-anchor="middle" class="grpLbl">GATED — CLEO MAY REQUEST, GATE DECIDES</text>
+
+      <rect x="350" y="620" width="320" height="52" rx="9" class="hiddenTool"/>
+      <text x="510" y="651" text-anchor="middle" class="lblHidden">Export</text>
+      <text x="640" y="651" text-anchor="end" class="sub">not exposed to Cleo</text>
+
+      <rect x="350" y="695" width="320" height="90" rx="10" class="box"/>
+      <text x="510" y="732" text-anchor="middle" class="lbl">Postgres / SQLite</text>
+      <text x="510" y="750" text-anchor="middle" class="sub">approval records · audit trail</text>
+
+      <!-- Relevance AI -->
+      <rect x="740" y="85" width="470" height="720" rx="14" class="relBox"/>
+      <text x="975" y="112" text-anchor="middle" class="colHead">Cleo — hosted agent</text>
+      <text x="975" y="129" text-anchor="middle" class="sub">reasons and directs tool calls · no DB or execution access of its own</text>
+
+      <rect x="760" y="150" width="430" height="76" rx="10" class="box"/>
+      <text x="975" y="182" text-anchor="middle" class="lbl">Analyze &amp; Propose</text>
+      <text x="975" y="199" text-anchor="middle" class="sub">calls Profiler, Validator, Diff Generator</text>
+
+      <rect x="760" y="240" width="430" height="76" rx="10" class="box"/>
+      <text x="975" y="272" text-anchor="middle" class="lbl">Explain (grounded)</text>
+      <text x="975" y="289" text-anchor="middle" class="sub">cites row / rule / cell IDs</text>
+
+      <rect x="760" y="330" width="430" height="76" rx="10" class="box"/>
+      <text x="975" y="362" text-anchor="middle" class="lbl">Confidence Score</text>
+      <text x="975" y="379" text-anchor="middle" class="sub">logs its own trail via Audit Logger</text>
+
+      <line x1="975" y1="406" x2="975" y2="460" class="lR" marker-start="url(#brR)" marker-end="url(#brR)"/>
+      <text x="985" y="437" class="edgeR">reasoning calls</text>
+
+      <rect x="780" y="460" width="390" height="72" rx="10" class="box"/>
+      <text x="975" y="494" text-anchor="middle" class="lbl">Claude</text>
+      <text x="975" y="510" text-anchor="middle" class="sub">model call via Relevance AI config</text>
+
+      <rect x="760" y="560" width="430" height="150" rx="10" class="box2"/>
+      <text x="780" y="586" class="grpLbl">REGISTERED IN RELEVANCE AI AS TOOLS</text>
+      <text x="780" y="612" class="lblSm">Profiler</text>
+      <text x="780" y="632" class="lblSm">Validator</text>
+      <text x="780" y="652" class="lblSm">Diff / Preview Generator</text>
+      <text x="985" y="612" class="lblSm">Audit Logger</text>
+      <text x="985" y="632" class="lblSm">Job / Progress</text>
+      <text x="780" y="676" class="lblSm">Rules Engine <tspan fill="var(--gate)">(gated)</tspan></text>
+      <text x="780" y="696" class="lblSm">Workflow Registry <tspan fill="var(--gate)">(gated)</tspan></text>
+
+      <!-- Cross-boundary + cross-column edges -->
+      <path d="M 290 175 L 330 148" class="lN" marker-end="url(#brN)"/>
+      <text x="310" y="140" text-anchor="middle" class="edgeN">raw file</text>
+
+      <path d="M 670 148 L 740 188" class="lN" marker-end="url(#brN)"/>
+      <text x="705" y="160" text-anchor="middle" class="edgeN">invoke Cleo</text>
+
+      <path d="M 670 312 L 740 245" class="lA" marker-start="url(#brA)" marker-end="url(#brA)"/>
+      <text x="705" y="270" text-anchor="middle" class="edgeA">tool calls</text>
+      <text x="705" y="283" text-anchor="middle" class="edgeA">(5 open)</text>
+
+      <path d="M 740 368 L 690 425" class="lA" marker-end="url(#brA)"/>
+      <text x="705" y="400" text-anchor="middle" class="edgeA">returns plan</text>
+      <text x="705" y="413" text-anchor="middle" class="edgeA">+ confidence</text>
+
+      <path d="M 740 425 L 427 534" class="lGd" marker-end="url(#brG)"/>
+      <text x="705" y="443" text-anchor="middle" class="edgeG">request:</text>
+      <text x="705" y="456" text-anchor="middle" class="edgeG">execute</text>
+
+      <path d="M 330 260 L 290 320" class="lN" marker-end="url(#brN)"/>
+      <text x="310" y="285" text-anchor="middle" class="edgeN">ranked plan</text>
+
+      <path d="M 290 420 L 350 470" class="lG" marker-end="url(#brG)"/>
+      <text x="310" y="450" text-anchor="middle" class="edgeG">approval</text>
+      <text x="310" y="463" text-anchor="middle" class="edgeG">record</text>
+
+      <path d="M 330 720 L 290 610" class="lA" marker-end="url(#brA)"/>
+      <text x="310" y="670" text-anchor="middle" class="edgeA">audit +</text>
+      <text x="310" y="683" text-anchor="middle" class="edgeA">export</text>
+    </svg>
+    <figcaption><b>Nine tools, three permissions.</b> Parser and Export (grey, dashed) never leave Bolt — they're mechanical steps with no judgment call to make, so they're not registered as tools at all. Profiler, Validator, Diff/Preview Generator, Audit Logger, and Job/Progress (blue) are registered as Tools inside Relevance AI, each with a name and description Cleo's own reasoning uses to decide when to call it — that's the part that makes this a real agent rather than one fixed pipeline call. Rules Engine and Workflow Registry (amber) are registered too, so Cleo can ask for them, but the Bolt endpoint behind each one checks the database for a valid approval record before doing anything — Cleo can request, only the gate can authorize.</figcaption>
+  </figure>
+
+  <div class="legend">
+    <span><i class="swatch neutral"></i> internal / invocation</span>
+    <span><i class="swatch data"></i> Cleo-directed tool call</span>
+    <span><i class="swatch gate"></i> approval-gated path</span>
+    <span><i class="swatch hidden"></i> never exposed to Cleo</span>
+  </div>
+
+  <section>
+    <h2>What changes on each side</h2>
+    <div class="split">
+      <div class="side bolt">
+        <h3>Impact on Bolt</h3>
+        <p class="grp">Build</p>
+        <ul>
+          <li>Seven small API endpoints: Profiler, Validator, Diff/Preview Generator, Audit Logger, Job/Progress <span class="tag open">open</span>, plus Rules Engine and Workflow Registry <span class="tag gated">gated</span>.</li>
+          <li>The two gated endpoints each start with the same check: look up the approval record for this plan ID; if it's missing, return a refusal instead of running.</li>
+          <li>Parser and Export <span class="tag hidden">hidden</span> stay internal functions called only by your own backend code — never registered anywhere Cleo can see them.</li>
+          <li>The Postgres/SQLite tables for approval records and the audit trail — this is the data the gate actually checks against.</li>
+        </ul>
+      </div>
+      <div class="side rel">
+        <h3>Impact on Relevance AI</h3>
+        <p class="grp">Configure</p>
+        <ul>
+          <li>Register the same five open endpoints as Tools, each with a clear name and description — that description is literally what Cleo's reasoning reads to decide whether to call it.</li>
+          <li>Register the two gated endpoints as Tools too, so Cleo can call them — just don't expect them to succeed without Bolt's approval check passing first.</li>
+          <li>No database credentials, no execution permissions, and no knowledge of Parser or Export — Relevance AI only ever holds the seven tool definitions above and the agent's system prompt.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Design basis: Rezoomex playbook SJ04 (DataClean Studio) — Cleo Agentic Workflow Architecture, adapted for a 2-day prototype split across Bolt and Relevance AI.
+  </footer>
+
+</div>
